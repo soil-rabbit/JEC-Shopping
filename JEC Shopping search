@@ -1,0 +1,18 @@
+public DataTable GetGoods(string word)
+{
+  DataTable dt = null;
+  string cstr = ConfigurationManager.ConnectionStrings["Db"].ConnectionString;
+  using (SqlConnection connection = new SqlConnection(cstr))
+  {
+    string sql = "Select * From Goods Where GoodsName like @goodsname or Detail like @detail";
+    SqlDataAdapter adapter = new SqlDataAdapter(sql, connection);
+    adapter.SelectCommand.Parameters.Add("@goodsname", SqlDbType.NVarChar);
+    adapter.SelectCommand.Parameters["@goodsname"].Value = "%" + word + "%";
+    adapter.SelectCommand.Parameters.Add("@detail", SqlDbType.NVarChar);
+    adapter.SelectCommand.Parameters["@detail"].Value = "%" + word + "%";
+    DataSet ds = new DataSet();
+    adapter.Fill(ds, "Goods");
+    dt = ds.Tables["Goods"];
+  }
+  return dt;
+}
