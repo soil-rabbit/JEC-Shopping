@@ -1,0 +1,54 @@
+protected void dlCart_ItemCommand(object source, DataListCommandEventArgs e)
+{
+  Member member = (Member)Session["Member"];
+  
+  Cart cart = new Cart();
+  cart.MemberId = member.MemberId;
+  cart.GoodsCode = e.CommandArgument.ToString();
+  CartTable ct = new CartTable();
+  
+  if (e.CommandName == "UpdateCart")
+  {
+    TextBox textBox = (TextBox)(e.Item.FindControl("txtNum"));
+    cart.Num = int.Parse(textBox.Text);
+    
+    ct.Update(cart);
+  }
+  else if (e.CommandName == "DeleteCart")
+  {
+    ct.Delete(cart);
+  }
+  Server.Transfer("cartlist.aspx");
+}
+
+protected void btnBuy_Click(object sender, EventArgs e)
+{
+  Member member = (Member)Session["Member"];
+  
+  CartTable ct = new CartTable();
+  DataTable dt = ct.GetCart(member);
+  
+  Sale sale = new Sale();
+  
+  sale.SaleDate = DateTime.Now;
+  sale.MemberId = member.MemberId;
+  SaleDetail[] detail = new SaleDetail[dt.Rows.Count];
+  
+  for (int i = 0; i < detail.Length; i++)
+  {
+    detail[i] = new SaleDetail();
+    detail[i].GoodsCode = dt.Rows[i]["goodscode"].ToString();
+    detail[i].Num = (int)(dt.Rows[i]["num]);
+  }
+  sale.Detail = detail;
+  
+  SaleTable st = new SaleTable();
+  
+  int cnt = st.Insert(sale);
+  
+  if(cnt != 0)
+  {
+    ct.Delete(member);
+  }
+  Server.Transfer("endmessage.aspx");
+}
